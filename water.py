@@ -9,10 +9,13 @@ GPIO.setmode(GPIO.BOARD) # Broadcom pin-numbering scheme
 
 def get_last_watered():
     try:
-        f = open("last_watered.txt", "r") # Ha nincs létrehozva a "last_watered.txt" file a progrma le crash-el.
-        return f.readline()
-    except:
-        return "NEVER!"
+        f = open("last_watered.txt", "r") # megnyitja olvasásra a "last_watered.txt file-t => ha nincs ilyen nevű file, akkor crash történt eddig. Javítva.
+        return f.readline() # visszaadja a file tartalmát.
+    except: # ha nem sikerül végrehajtani
+        f = open("last_watered.txt", "w+") # nyissa meg írásra létrehozási jogosultsággal a "last-watered.txt" file-t.
+        f.write("First Start {}".format(datetime.datetime.now())) #Első futás ideje, nincs "last-watered.txt" ezért létrehozza a program a file-t a Pi-n.
+        f.close() # zárja le a file-t.
+    return "File Created!" # adja vissza a "File Created!" értéket.
       
 def get_status(pin = 8):
     GPIO.setup(pin, GPIO.IN) 
