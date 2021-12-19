@@ -9,7 +9,7 @@ GPIO.setmode(GPIO.BOARD) # Broadcom pin-numbering scheme
 
 def get_last_watered():
     try:
-        f = open("last_watered.txt", "r")
+        f = open("last_watered.txt", "r") # Ha nincs létrehozva a "last_watered.txt" file a progrma le crash-el.
         return f.readline()
     except:
         return "NEVER!"
@@ -30,10 +30,10 @@ def auto_water(delay = 5, pump_pin = 7, water_sensor_pin = 8):
     try:
         while 1 and consecutive_water_count < 10:
             time.sleep(delay)
-            wet = get_status(pin = water_sensor_pin) == 0
+            wet = get_status(pin = water_sensor_pin) == 1 # kódban a szenzor rossz értékre volt állítva, akkor nedves a talaj, ha ez az érték "1", átállítva "0"->"1"-re
             if not wet:
                 if consecutive_water_count < 5:
-                    pump_on(pump_pin, 1)
+                    pump_on(pump_pin, 1)  #cső hosszúságtól függően lehet, hogy a "delay" értéke kevés lesz, több próbát igényel.
                 consecutive_water_count += 1
             else:
                 consecutive_water_count = 0
