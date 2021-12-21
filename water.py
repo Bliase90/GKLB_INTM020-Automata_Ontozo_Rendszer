@@ -1,7 +1,16 @@
-# External module imp
+# External module import
 import RPi.GPIO as GPIO
 import datetime
 import time
+from time import strftime
+import os
+import glob
+import mariadb
+import sys
+
+#Variables for MySQL
+conn = mariadb.connect(host="localhost", user="admin", password="admin", database="sensor") # definiálja az adatbázis kapcsolatot
+cur = conn.cursor() # csatlakozik az adatbázishoz
 
 init = False
 
@@ -38,6 +47,21 @@ def auto_water(delay = 5, pump_pin = 7, water_sensor_pin = 8): # auto_water funk
                 if consecutive_water_count < 5: # ha 5-nél kisebb az "öntözési számláló"
                     pump_on(pump_pin, 5)  #cső hosszúságtól függően lehet, hogy a "delay" értéke kevés lesz, több próbát igényel. Kapcsolja be a szivattyút (szivattyú GPIO PIN száma "7" / 5-ös késleltetés)
                 consecutive_water_count += 1 # növelje az aktuális öntözések számát +1-el
+                                current_time=format(datetime.datetime.now())
+                watered=get_last_watered() #változóba teszi a szenzor értéket
+                secs = float(time.time())  #UNIX idő formátum
+                secs = secs*1000
+                sql = ("INSERT INTO soil_sensor (datetime,wet,water_count,Last_Watered) VALUES (%s,%s,%s,%s)", (secs, last_reading, consecutive_water_count, watered)) # adatbázisba új bejegyzés
+                try: # adatbázisra futtatni a definiált SQL query-t.
+                    print ("Writing to the database...")
+                    cur.execute(*sql)
+                    conn.commit()
+                    print ("Write complete")
+                except:
+                    conn.rollback()
+                    print ("We have a problem")
+                    cur.close()
+                    conn.close()
             else: # különben 
                 consecutive_water_count = 0 # 0-a értékre állítsa az aktuális öntözések számát.
     except KeyboardInterrupt: # Ha CTRL+C -t megnyomták , lépjen ki a kódból és szabadítsa fel a GPIO erőforrásokat
